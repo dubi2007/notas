@@ -2,6 +2,7 @@
 
 import { XIcon, FileTextIcon, LayoutTemplateIcon } from '@/components/icons/NavIcons'
 import { useTemplates } from '@/hooks/useTemplates'
+import { motion } from 'framer-motion'
 import type { Json } from '@/types'
 
 interface Props {
@@ -16,11 +17,23 @@ export function NewNoteModal({ onSelectBlank, onSelectTemplate, onClose }: Props
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       {/* Backdrop */}
-      <div className="fixed inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
+      <motion.div 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="absolute inset-0 bg-black/40 backdrop-blur-sm" 
+        onClick={onClose} 
+      />
 
       {/* Panel */}
-      <div className="relative z-50 w-[340px] rounded-2xl p-5 shadow-2xl"
-           style={{ background: 'var(--ds-surface-lowest)', border: '1px solid rgba(145,180,228,0.3)' }}>
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.96, y: 10 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.96, y: 10 }}
+        transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+        className="relative z-50 w-[90vw] sm:w-[340px] rounded-2xl p-5 shadow-2xl"
+        style={{ background: 'var(--ds-surface-lowest)', border: '1px solid rgba(145,180,228,0.3)' }}
+      >
 
         <div className="mb-4 flex items-center justify-between">
           <h3 className="text-base font-bold" style={{ color: 'var(--ds-on-surface)' }}>
@@ -85,7 +98,7 @@ export function NewNoteModal({ onSelectBlank, onSelectTemplate, onClose }: Props
             </div>
           </>
         )}
-      </div>
+      </motion.div>
     </div>
   )
 }

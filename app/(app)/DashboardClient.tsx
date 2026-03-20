@@ -2,6 +2,7 @@
 
 import { Fragment, useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { motion, AnimatePresence, type Variants } from 'framer-motion'
 import { 
   ChevronRightIcon as ChevronRight, 
   FolderOpenIcon as FolderIcon, 
@@ -15,6 +16,20 @@ import { useAppStore } from '@/store/useAppStore'
 import { createNote, deleteNote } from '@/services/notes'
 import { NewNoteModal } from '@/components/ui/NewNoteModal'
 import type { Folder, Note, Json } from '@/types'
+
+// ── Framer Motion Variants ────────────────────────────────────────────────────
+const containerVariants: Variants = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: { staggerChildren: 0.04 }
+  }
+}
+
+const itemVariants: Variants = {
+  hidden: { opacity: 0, y: 12 },
+  show: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 350, damping: 25 } }
+}
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -50,11 +65,12 @@ function FolderGridCard({ folder, noteCount, onClick }: {
 }) {
   const [hover, setHover] = useState(false)
   return (
-    <div
+    <motion.div
+      variants={itemVariants}
       onClick={onClick}
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
-      className="flex cursor-pointer flex-col overflow-hidden rounded-2xl transition"
+      className="flex cursor-pointer flex-col overflow-hidden rounded-2xl transition-colors"
       style={{
         background: hover ? 'var(--ds-surface-low)' : 'var(--ds-surface-lowest)',
         border:     '1.5px solid rgba(145,180,228,0.2)',
@@ -77,7 +93,7 @@ function FolderGridCard({ folder, noteCount, onClick }: {
           {noteCount} {noteCount === 1 ? 'nota' : 'notas'}
         </p>
       </div>
-    </div>
+    </motion.div>
   )
 }
 
@@ -87,9 +103,12 @@ function FolderListRow({ folder, noteCount, onClick }: {
   folder: Folder; noteCount: number; onClick: () => void
 }) {
   return (
-    <div
+    <motion.div
+      variants={itemVariants}
+      whileHover={{ scale: 1.01, x: 4 }}
+      whileTap={{ scale: 0.99 }}
       onClick={onClick}
-      className="group flex cursor-pointer items-center gap-4 px-4 py-3 transition"
+      className="group flex cursor-pointer items-center gap-4 px-4 py-3 transition-colors"
       style={{ borderBottom: '1px solid rgba(145,180,228,0.12)' }}
       onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.background = 'rgba(5,52,92,0.03)'}
       onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.background = 'transparent'}
@@ -107,7 +126,7 @@ function FolderListRow({ folder, noteCount, onClick }: {
         {noteCount} {noteCount === 1 ? 'nota' : 'notas'}
       </span>
       <ChevronRight size={14} style={{ color: 'var(--ds-outline)' }} />
-    </div>
+    </motion.div>
   )
 }
 
@@ -116,11 +135,14 @@ function FolderListRow({ folder, noteCount, onClick }: {
 function NewNoteCard({ onClick }: { onClick: () => void }) {
   const [hover, setHover] = useState(false)
   return (
-    <div
+    <motion.div
+      variants={itemVariants}
+      whileHover={{ scale: 1.02 }}
+      whileTap={{ scale: 0.98 }}
       onClick={onClick}
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
-      className="flex cursor-pointer flex-col items-center justify-center rounded-2xl transition"
+      className="flex cursor-pointer flex-col items-center justify-center rounded-2xl transition-colors"
       style={{
         minHeight: 140,
         border: `2px dashed ${hover ? 'var(--ds-primary)' : 'rgba(145,180,228,0.45)'}`,
@@ -135,7 +157,7 @@ function NewNoteCard({ onClick }: { onClick: () => void }) {
          style={{ color: hover ? 'var(--ds-primary)' : 'var(--ds-on-variant)' }}>
         Nuevo Documento
       </p>
-    </div>
+    </motion.div>
   )
 }
 
@@ -148,9 +170,13 @@ function NoteGridCard({ note, folderName, isActive, onClick, onDelete }: {
   const preview = extractPreview(note.content)
 
   return (
-    <div
+    <motion.div
+      variants={itemVariants}
+      whileHover={{ scale: 1.02 }}
+      whileTap={{ scale: 0.98 }}
+      layoutId={`note-${note.id}`}
       onClick={onClick}
-      className="group relative flex cursor-pointer flex-col overflow-hidden rounded-2xl transition"
+      className="group relative flex cursor-pointer flex-col overflow-hidden rounded-2xl transition-colors"
       style={{
         background:  'var(--ds-surface-lowest)',
         border:      isActive ? '1.5px solid var(--ds-primary)' : '1.5px solid rgba(145,180,228,0.2)',
@@ -200,7 +226,7 @@ function NoteGridCard({ note, folderName, isActive, onClick, onDelete }: {
         className="absolute right-2 top-2 hidden h-6 w-6 items-center justify-center rounded-lg text-xs group-hover:flex"
         style={{ background: 'rgba(239,68,68,0.12)', color: '#ef4444' }}
       >✕</button>
-    </div>
+    </motion.div>
   )
 }
 
@@ -211,9 +237,13 @@ function NoteListRow({ note, folderName, isActive, onClick, onDelete }: {
   onClick: () => void; onDelete: () => void
 }) {
   return (
-    <div
+    <motion.div
+      variants={itemVariants}
+      whileHover={{ scale: 1.01, x: 4 }}
+      whileTap={{ scale: 0.99 }}
+      layoutId={`note-list-${note.id}`}
       onClick={onClick}
-      className="group flex cursor-pointer items-center gap-4 px-4 py-3 transition"
+      className="group flex cursor-pointer items-center gap-4 px-4 py-3 transition-colors"
       style={{
         background:   isActive ? 'rgba(81,72,216,0.06)' : 'transparent',
         borderBottom: '1px solid rgba(145,180,228,0.12)',
@@ -231,25 +261,43 @@ function NoteListRow({ note, folderName, isActive, onClick, onDelete }: {
            style={{ color: isActive ? 'var(--ds-primary)' : 'var(--ds-on-surface)' }}>
           {note.title || 'Sin título'}
         </p>
+        {/* On mobile, show the folder and date below the title */}
+        <div className="mt-1 flex items-center gap-2 md:hidden">
+          {folderName && (
+            <span className="shrink-0 rounded-md px-1.5 py-0.5 text-[10px]"
+                  style={{ background: 'var(--ds-secondary-cnt)', color: 'var(--ds-primary)' }}>
+              {folderName}
+            </span>
+          )}
+          <span className="shrink-0 text-[11px]" style={{ color: 'var(--ds-on-variant)' }}>
+            {formatDate(note.updated_at)}
+          </span>
+        </div>
       </div>
 
-      {folderName && (
-        <span className="shrink-0 rounded-md px-2 py-0.5 text-[11px]"
-              style={{ background: 'var(--ds-secondary-cnt)', color: 'var(--ds-primary)' }}>
-          {folderName}
+      <div className="hidden md:flex items-center w-[150px] shrink-0">
+        <span className="text-xs truncate" style={{ color: 'var(--ds-on-variant)' }}>
+          {formatDate(note.updated_at)}
         </span>
-      )}
+      </div>
 
-      <span className="shrink-0 text-xs" style={{ color: 'var(--ds-on-variant)' }}>
-        {formatDate(note.updated_at)}
-      </span>
+      <div className="hidden md:flex items-center w-[110px] shrink-0">
+        {folderName && (
+          <span className="truncate rounded-md px-2 py-0.5 text-[11px]"
+                style={{ background: 'var(--ds-secondary-cnt)', color: 'var(--ds-primary)' }}>
+            {folderName}
+          </span>
+        )}
+      </div>
 
-      <button
-        onClick={e => { e.stopPropagation(); if (confirm('¿Eliminar esta nota?')) onDelete() }}
-        className="hidden rounded-lg px-2 py-1 text-xs transition group-hover:block"
-        style={{ color: '#ef4444', background: 'rgba(239,68,68,0.08)' }}
-      >Eliminar</button>
-    </div>
+      <div className="w-[80px] shrink-0 flex justify-end">
+        <button
+          onClick={e => { e.stopPropagation(); if (confirm('¿Eliminar esta nota?')) onDelete() }}
+          className="md:hidden rounded-lg px-2 py-1 text-xs transition group-hover:block"
+          style={{ color: '#ef4444', background: 'rgba(239,68,68,0.08)' }}
+        >Eliminar</button>
+      </div>
+    </motion.div>
   )
 }
 
@@ -257,10 +305,12 @@ function NoteListRow({ note, folderName, isActive, onClick, onDelete }: {
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <p className="col-span-full mb-1 text-[11px] font-semibold uppercase tracking-widest"
+    <motion.p 
+       variants={itemVariants}
+       className="col-span-full mb-1 text-[11px] font-semibold uppercase tracking-widest"
        style={{ color: 'var(--ds-on-variant)' }}>
       {children}
-    </p>
+    </motion.p>
   )
 }
 
@@ -352,6 +402,7 @@ export function DashboardClient({ folderId }: { folderId?: string | null }) {
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
+      <AnimatePresence>
       {showNoteModal && (
         <NewNoteModal
           onSelectBlank={() => doCreateNote()}
@@ -359,10 +410,16 @@ export function DashboardClient({ folderId }: { folderId?: string | null }) {
           onClose={() => setShowNoteModal(false)}
         />
       )}
+      </AnimatePresence>
 
       {/* ── Header ── */}
-      <div className="flex shrink-0 items-center justify-between px-8 py-5"
-           style={{ borderBottom: '1px solid rgba(145,180,228,0.2)' }}>
+      <motion.div 
+        initial={{ y: -15, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.4, ease: "easeOut" }}
+        className="flex shrink-0 flex-col sm:flex-row sm:items-center justify-between gap-4 px-4 py-4 md:px-8 md:py-5"
+        style={{ borderBottom: '1px solid rgba(145,180,228,0.2)' }}
+      >
 
         {/* Breadcrumb */}
         <div>
@@ -395,20 +452,20 @@ export function DashboardClient({ folderId }: { folderId?: string | null }) {
           )}
         </div>
 
-        <div className="flex items-center gap-3">
-          {/* Filter */}
-          <div className="relative">
-            <Search size={13} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2"
-                    style={{ color: 'var(--ds-outline)' }} />
-            <input
-              type="search"
-              placeholder="Filtrar…"
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              className="input-curator w-36 py-1.5 pl-8 pr-3 text-sm"
-              style={{ color: 'var(--ds-on-surface)' }}
-            />
-          </div>
+          <div className="flex w-full sm:w-auto items-center justify-between sm:justify-end gap-3">
+            {/* Filter */}
+            <div className="relative flex-1 sm:flex-initial">
+              <Search size={13} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2"
+                      style={{ color: 'var(--ds-outline)' }} />
+              <input
+                type="search"
+                placeholder="Filtrar…"
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                className="input-curator w-full sm:w-36 py-1.5 pl-8 pr-3 text-sm"
+                style={{ color: 'var(--ds-on-surface)' }}
+              />
+            </div>
 
           {/* View toggle */}
           <div className="flex overflow-hidden rounded-xl"
@@ -428,14 +485,19 @@ export function DashboardClient({ folderId }: { folderId?: string | null }) {
             ))}
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* ── Body ── */}
-      <div className="flex-1 overflow-y-auto px-8 py-6">
+      <div className="flex-1 overflow-y-auto px-4 py-4 md:px-8 md:py-6">
 
         {/* ── Grid view ── */}
         {view === 'grid' && (
-          <div className="grid grid-cols-[repeat(auto-fill,minmax(190px,1fr))] gap-4">
+          <motion.div 
+            variants={containerVariants} 
+            initial="hidden" 
+            animate="show"
+            className="grid grid-cols-[repeat(auto-fill,minmax(140px,1fr))] md:grid-cols-[repeat(auto-fill,minmax(190px,1fr))] gap-4"
+          >
 
             {/* Subcarpetas */}
             {hasSubfolders && !search && (
@@ -468,7 +530,7 @@ export function DashboardClient({ folderId }: { folderId?: string | null }) {
 
             {/* Empty state */}
             {filtered.length === 0 && !hasSubfolders && !search && (
-              <div className="col-span-full flex flex-col items-center justify-center py-16 text-center">
+              <motion.div variants={itemVariants} className="col-span-full flex flex-col items-center justify-center py-16 text-center">
                 <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl"
                      style={{ background: 'var(--ds-secondary-cnt)' }}>
                   <FileText size={28} strokeWidth={1.5} style={{ color: 'var(--ds-primary)' }} />
@@ -479,15 +541,20 @@ export function DashboardClient({ folderId }: { folderId?: string | null }) {
                 <p className="mt-1 text-xs" style={{ color: 'var(--ds-on-variant)' }}>
                   Crea tu primer documento usando el botón de arriba
                 </p>
-              </div>
+              </motion.div>
             )}
-          </div>
+          </motion.div>
         )}
 
         {/* ── List view ── */}
         {view === 'list' && (
-          <div className="overflow-hidden rounded-2xl"
-               style={{ border: '1px solid rgba(145,180,228,0.2)', background: 'var(--ds-surface-lowest)' }}>
+          <motion.div 
+            variants={containerVariants}
+            initial="hidden"
+            animate="show"
+            className="overflow-hidden rounded-2xl"
+            style={{ border: '1px solid rgba(145,180,228,0.2)', background: 'var(--ds-surface-lowest)' }}
+          >
 
             {/* Subcarpetas */}
             {hasSubfolders && !search && (
@@ -508,7 +575,7 @@ export function DashboardClient({ folderId }: { folderId?: string | null }) {
             )}
 
             {/* Documentos header */}
-            <div className="grid grid-cols-[1fr_150px_110px_80px] gap-4 px-4 py-2.5 text-[11px] font-semibold uppercase tracking-wide"
+            <div className="hidden md:grid grid-cols-[1fr_150px_110px_80px] gap-4 px-4 py-2.5 text-[11px] font-semibold uppercase tracking-wide"
                  style={{ borderBottom: '1px solid rgba(145,180,228,0.2)', borderTop: hasSubfolders && !search ? '1px solid rgba(145,180,228,0.2)' : undefined, color: 'var(--ds-on-variant)', background: 'var(--ds-surface)' }}>
               <span>Nombre</span>
               <span>Última edición</span>
@@ -534,9 +601,12 @@ export function DashboardClient({ folderId }: { folderId?: string | null }) {
             )}
 
             {/* New note row */}
-            <div
+            <motion.div
+              variants={itemVariants}
+              whileHover={{ scale: 1.01, x: 4 }}
+              whileTap={{ scale: 0.99 }}
               onClick={() => setShowNoteModal(true)}
-              className="flex cursor-pointer items-center gap-4 px-4 py-3 transition"
+              className="flex cursor-pointer items-center gap-4 px-4 py-3 transition-colors"
               style={{ color: 'var(--ds-primary)' }}
               onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.background = 'rgba(81,72,216,0.04)'}
               onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.background = 'transparent'}
@@ -546,8 +616,8 @@ export function DashboardClient({ folderId }: { folderId?: string | null }) {
                 <Plus size={14} />
               </div>
               <span className="text-sm font-medium">Nueva nota</span>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
         )}
       </div>
     </div>

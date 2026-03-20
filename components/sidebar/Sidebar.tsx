@@ -1,8 +1,9 @@
 'use client'
 
-import { useCallback, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useCallback, useState, useEffect } from 'react'
+import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
+import { motion } from 'framer-motion'
 import { HouseIcon } from '@/components/icons/HouseIcon'
 import { SunIcon } from '@/components/icons/SunIcon'
 import { LunaIcon } from '@/components/icons/LunaIcon'
@@ -24,8 +25,11 @@ import { SaveStatus } from '@/components/ui/SaveStatus'
 
 export function Sidebar() {
   const router = useRouter()
+  const pathname = usePathname()
   const { theme, toggle: toggleTheme } = useTheme()
   const user = useAppStore((s) => s.user)
+  const isSidebarOpen = useAppStore((s) => s.isSidebarOpen)
+  const setSidebarOpen = useAppStore((s) => s.setSidebarOpen)
   const setSearchQuery = useAppStore((s) => s.setSearchQuery)
   const activeFolder = useAppStore((s) => s.activeFolder)
   const setActiveFolder = useAppStore((s) => s.setActiveFolder)
@@ -45,6 +49,10 @@ export function Sidebar() {
     setNewFolderName('')
     setCreating(false)
   }, [createFolder, newFolderName])
+
+  useEffect(() => {
+    setSidebarOpen(false)
+  }, [pathname, setSidebarOpen])
 
   const doCreateNote = useCallback(async (content?: import('@/types').Json) => {
     const note = await createNote(activeFolder, content)
@@ -70,11 +78,20 @@ export function Sidebar() {
   }, [createFolder])
 
   return (
-    <aside
-      className="flex h-screen w-[272px] flex-shrink-0 flex-col"
-      style={{ background: 'var(--ds-surface-low)', borderRight: '1px solid rgba(145,180,228,0.12)' }}
-    >
-      {/* ── Branding ── */}
+    <>
+      {/* Mobile backdrop */}
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 z-40 bg-black/20 backdrop-blur-sm transition-opacity md:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      <aside
+        className={`fixed inset-y-0 left-0 z-50 flex h-[100dvh] w-[272px] flex-shrink-0 flex-col transition-transform duration-300 md:relative md:h-screen md:translate-x-0 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}
+        style={{ background: 'var(--ds-surface-low)', borderRight: '1px solid rgba(145,180,228,0.12)' }}
+      >
+        {/* ── Branding ── */}
       <div className="flex items-center gap-2 px-4 pt-5 pb-3">
         <Link
           href="/app"
@@ -131,7 +148,9 @@ export function Sidebar() {
         ) : (
           <>
             {/* ── Home nav item ── */}
-            <button
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
               onClick={handleGoHome}
               className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left transition mb-0.5"
               style={{
@@ -145,7 +164,7 @@ export function Sidebar() {
             >
               <HouseIcon size={13} style={{ flexShrink: 0 }} />
               <span className="text-sm">Mis Documentos</span>
-            </button>
+            </motion.button>
 
             {/* ── Divider ── */}
             <div className="mx-1 my-2" style={{ borderTop: '1px solid rgba(145,180,228,0.13)' }} />
@@ -241,14 +260,16 @@ export function Sidebar() {
       <div className="px-3 pt-3 pb-4 space-y-2"
            style={{ borderTop: '1px solid rgba(145,180,228,0.15)' }}>
 
-        <button
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
           onClick={() => setShowNoteModal(true)}
           className="flex w-full items-center justify-center gap-2 py-2.5 text-sm font-semibold rounded-xl text-white transition hover:opacity-90 active:opacity-80"
           style={{ background: 'var(--ds-primary)' }}
         >
           <PlusIcon size={15} strokeWidth={2.5} />
           Nueva nota
-        </button>
+        </motion.button>
 
         {showNoteModal && (
           <NewNoteModal
@@ -259,25 +280,39 @@ export function Sidebar() {
         )}
 
         {user ? (
-          <div className="flex items-center gap-2.5 rounded-xl px-3 py-2"
+          <div className="flex items-center justify-between gap-2.5 rounded-xl px-2 py-2"
                style={{ background: 'rgba(81,72,216,0.06)', border: '1px solid rgba(145,180,228,0.12)' }}>
-            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white"
-                 style={{ background: 'linear-gradient(135deg, var(--ds-primary), var(--ds-primary-alt))' }}>
-              {user.email?.[0]?.toUpperCase() ?? '?'}
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-xs font-medium" style={{ color: 'var(--ds-on-surface)' }}>
-                {user.email}
-              </p>
-              <p className="text-[10px]" style={{ color: 'var(--ds-outline)' }}>Cuenta activa</p>
-            </div>
-            <button
-              onClick={handleLogout}
-              className="shrink-0 rounded-lg px-2 py-1 text-[11px] font-medium transition hover:opacity-80"
-              style={{ color: 'var(--ds-outline)', background: 'rgba(145,180,228,0.12)' }}
+            <Link 
+              href="/app/profile" 
+              onClick={() => { setSidebarOpen(false); setActiveFolder(null) }}
+              className="flex min-w-0 flex-1 items-center gap-2.5 transition hover:opacity-75"
             >
-              Salir
-            </button>
+              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white shadow-sm"
+                   style={{ background: 'linear-gradient(135deg, var(--ds-primary), var(--ds-primary-alt))' }}>
+                {user.email?.[0]?.toUpperCase() ?? '?'}
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-xs font-medium" style={{ color: 'var(--ds-on-surface)' }}>
+                  {user.email}
+                </p>
+                <p className="text-[10px]" style={{ color: 'var(--ds-outline)' }}>Ver perfil</p>
+              </div>
+            </Link>
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={handleLogout}
+              title="Cerrar sesión"
+              className="shrink-0 flex h-7 w-7 items-center justify-center rounded-lg transition"
+              style={{ color: '#ef4444', background: 'rgba(239,68,68,0.12)' }}
+            >
+              {/* x icon or exit icon: using an svg for logout since there is none on NavIcons. */}
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                <polyline points="16 17 21 12 16 7"></polyline>
+                <line x1="21" y1="12" x2="9" y2="12"></line>
+              </svg>
+            </motion.button>
           </div>
         ) : (
           <Link href="/login"
@@ -288,5 +323,6 @@ export function Sidebar() {
         )}
       </div>
     </aside>
+    </>
   )
 }

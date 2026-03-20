@@ -9,6 +9,10 @@ interface AppStore {
   user: User | null
   setUser: (user: User | null) => void
 
+  // ── Mobile Sidebar
+  isSidebarOpen: boolean
+  setSidebarOpen: (open: boolean) => void
+
   // ── Folders
   folders: Folder[]
   setFolders: (folders: Folder[]) => void
@@ -44,6 +48,10 @@ export const useAppStore = create<AppStore>()(
       // Auth
       user: null,
       setUser: (user) => set({ user }),
+
+      // Mobile Sidebar
+      isSidebarOpen: false,
+      setSidebarOpen: (isSidebarOpen) => set({ isSidebarOpen }),
 
       // Folders
       folders: [],
