@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install @supabase/supabase-js @supabase/ssr @tiptap/react @tiptap/starter-kit @tiptap/extension-image @tiptap/extension-code-block-lowlight lowlight zustand)",
+      "Bash(npm install @tailwindcss/typography)",
+      "Bash(npm run build)",
+      "Bash(npm install @tiptap/extension-table @tiptap/extension-table-row @tiptap/extension-table-cell @tiptap/extension-table-header)",
+      "Bash(node -e \"const t = require\\(''./node_modules/@tiptap/extension-table/dist/index.js''\\); console.log\\(Object.keys\\(t\\)\\)\")",
+      "Bash(node -e \"const t = require\\(''./node_modules/@tiptap/extension-table-row/dist/index.js''\\); console.log\\(Object.keys\\(t\\)\\); const c = require\\(''./node_modules/@tiptap/extension-table-cell/dist/index.js''\\); console.log\\(Object.keys\\(c\\)\\); const h = require\\(''./node_modules/@tiptap/extension-table-header/dist/index.js''\\); console.log\\(Object.keys\\(h\\)\\)\")",
+      "Bash(npm install @tiptap/extension-bubble-menu)"
+    ]
+  }
+}
