@@ -24,6 +24,33 @@ export async function login(email: string, password: string) {
   return data.user
 }
 
+/** Send a one-time code + magic link to the user's email via Brevo API */
+export async function sendOTP(email: string): Promise<{ emailOtp: string | null }> {
+  const res = await fetch('/api/auth/send-otp', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email }),
+  })
+  const json = await res.json()
+  if (!res.ok) throw { message: json.error ?? 'No se pudo enviar el código' } as AuthError
+  return { emailOtp: json.emailOtp ?? null }
+}
+
+/**
+ * Verify the 6-digit OTP code.
+ * Returns { actionLink } — redirect the user there to create the session.
+ */
+export async function verifyOTP(email: string, code: string): Promise<{ emailOtp: string }> {
+  const res = await fetch('/api/auth/verify-otp', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, code }),
+  })
+  const json = await res.json()
+  if (!res.ok) throw { message: json.error ?? 'Código incorrecto o expirado' } as AuthError
+  return { emailOtp: json.emailOtp }
+}
+
 /** Sign out the current user */
 export async function logout() {
   const { error } = await supabase().auth.signOut()
@@ -32,9 +59,13 @@ export async function logout() {
 
 /** Get the currently authenticated user (client-side) */
 export async function getCurrentUser() {
-  const {
-    data: { user },
-  } = await supabase().auth.getUser()
+  const { data: { user }, error } = await supabase().auth.getUser()
+  if (error) {
+    // Stale / invalid refresh token — wipe local session so Supabase stops
+    // retrying and the user gets redirected to login cleanly.
+    await supabase().auth.signOut({ scope: 'local' })
+    return null
+  }
   return user
 }
 

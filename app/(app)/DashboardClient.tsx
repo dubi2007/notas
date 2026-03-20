@@ -22,13 +22,14 @@ const containerVariants: Variants = {
   hidden: { opacity: 0 },
   show: {
     opacity: 1,
-    transition: { staggerChildren: 0.04 }
+    // stagger only the first 12 items to avoid blocking the main thread with 50+ items
+    transition: { staggerChildren: 0.03, staggerDirection: 1 }
   }
 }
 
 const itemVariants: Variants = {
-  hidden: { opacity: 0, y: 12 },
-  show: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 350, damping: 25 } }
+  hidden: { opacity: 0, y: 8 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.18, ease: 'easeOut' } }
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -105,8 +106,6 @@ function FolderListRow({ folder, noteCount, onClick }: {
   return (
     <motion.div
       variants={itemVariants}
-      whileHover={{ scale: 1.01, x: 4 }}
-      whileTap={{ scale: 0.99 }}
       onClick={onClick}
       className="group flex cursor-pointer items-center gap-4 px-4 py-3 transition-colors"
       style={{ borderBottom: '1px solid rgba(145,180,228,0.12)' }}
@@ -174,7 +173,6 @@ function NoteGridCard({ note, folderName, isActive, onClick, onDelete }: {
       variants={itemVariants}
       whileHover={{ scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
-      layoutId={`note-${note.id}`}
       onClick={onClick}
       className="group relative flex cursor-pointer flex-col overflow-hidden rounded-2xl transition-colors"
       style={{
@@ -239,9 +237,6 @@ function NoteListRow({ note, folderName, isActive, onClick, onDelete }: {
   return (
     <motion.div
       variants={itemVariants}
-      whileHover={{ scale: 1.01, x: 4 }}
-      whileTap={{ scale: 0.99 }}
-      layoutId={`note-list-${note.id}`}
       onClick={onClick}
       className="group flex cursor-pointer items-center gap-4 px-4 py-3 transition-colors"
       style={{

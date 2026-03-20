@@ -8,7 +8,19 @@ import { Table, TableRow, TableCell, TableHeader } from '@tiptap/extension-table
 import { TextStyle } from '@tiptap/extension-text-style'
 import { Color } from '@tiptap/extension-color'
 import TextAlign from '@tiptap/extension-text-align'
-import { createLowlight, all } from 'lowlight'
+import { createLowlight } from 'lowlight'
+import javascript from 'highlight.js/lib/languages/javascript'
+import typescript from 'highlight.js/lib/languages/typescript'
+import python     from 'highlight.js/lib/languages/python'
+import java       from 'highlight.js/lib/languages/java'
+import cpp        from 'highlight.js/lib/languages/cpp'
+import css        from 'highlight.js/lib/languages/css'
+import xml        from 'highlight.js/lib/languages/xml'
+import json       from 'highlight.js/lib/languages/json'
+import bash       from 'highlight.js/lib/languages/bash'
+import sql        from 'highlight.js/lib/languages/sql'
+import rust       from 'highlight.js/lib/languages/rust'
+import go         from 'highlight.js/lib/languages/go'
 import { ResizableImage } from '../ResizableImageExtension'
 import { ShapeExtension }  from '../ShapeExtension'
 import { TextHighlight }   from '../TextHighlightExtension'
@@ -28,7 +40,8 @@ import { HFEditPanel } from './HFEditPanel'
 // Re-export so consumers (EditorToolbar, exportPdf) keep working with the same path
 export { PAGE_FORMATS, type FormatKey }
 
-const lowlight = createLowlight(all)
+const lowlight = createLowlight()
+lowlight.register({ javascript, typescript, python, java, cpp, css, xml, json, bash, sql, rust, go })
 
 interface Props { note: Note }
 
