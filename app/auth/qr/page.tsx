@@ -1,12 +1,11 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { useSearchParams, useRouter } from 'next/navigation'
+import { Suspense, useEffect, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { getSupabaseBrowserClient } from '@/lib/supabase/client'
 
-export default function QRLoginPage() {
+function QRLoginContent() {
   const searchParams = useSearchParams()
-  const router = useRouter()
   const [status, setStatus] = useState<'verifying' | 'error'>('verifying')
   const [message, setMessage] = useState('')
 
@@ -34,7 +33,7 @@ export default function QRLoginPage() {
         window.location.href = '/'
       }
     })()
-  }, [searchParams, router])
+  }, [searchParams])
 
   return (
     <div
@@ -44,7 +43,7 @@ export default function QRLoginPage() {
       {status === 'verifying' ? (
         <>
           <div
-            className="h-10 w-10 animate-spin rounded-full border-4 border-t-transparent"
+            className="h-10 w-10 animate-spin rounded-full border-4"
             style={{ borderColor: 'var(--ds-primary)', borderTopColor: 'transparent' }}
           />
           <p className="text-sm" style={{ color: 'var(--ds-on-variant)' }}>
@@ -52,17 +51,25 @@ export default function QRLoginPage() {
           </p>
         </>
       ) : (
-        <div className="max-w-sm rounded-2xl p-8 text-center" style={{ background: 'var(--ds-surface-lowest)', boxShadow: 'var(--ds-shadow)' }}>
+        <div
+          className="max-w-sm rounded-2xl p-8 text-center"
+          style={{ background: 'var(--ds-surface-lowest)', boxShadow: 'var(--ds-shadow)' }}
+        >
           <p className="mb-4 text-2xl">⚠️</p>
           <p className="mb-6 text-sm" style={{ color: 'var(--ds-on-surface)' }}>{message}</p>
-          <a
-            href="/login"
-            className="btn-primary inline-block px-6 py-3 text-sm"
-          >
+          <a href="/login" className="btn-primary inline-block px-6 py-3 text-sm">
             Volver al login
           </a>
         </div>
       )}
     </div>
+  )
+}
+
+export default function QRLoginPage() {
+  return (
+    <Suspense>
+      <QRLoginContent />
+    </Suspense>
   )
 }
