@@ -45,12 +45,13 @@ export async function POST(request: NextRequest) {
       await sendOTPEmail(email, code, `${origin}/login`)
     } else {
       emailOtp = linkData.properties?.email_otp ?? null
-      const magicLink = linkData.properties?.action_link ?? `${origin}/login`
+      const magicLink = emailOtp
+        ? `${origin}/auth/qr?email=${encodeURIComponent(email)}&token=${encodeURIComponent(emailOtp)}`
+        : `${origin}/login`
       await sendOTPEmail(email, code, magicLink)
     }
 
-    // Return emailOtp so the client can render a QR code
-    return NextResponse.json({ ok: true, emailOtp })
+    return NextResponse.json({ ok: true })
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Error interno'
     console.error('send-otp error:', err)

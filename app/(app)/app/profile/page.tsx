@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { logout } from '@/lib/auth'
 import { motion } from 'framer-motion'
 import { ChevronRightIcon } from '@/components/icons/NavIcons'
+import { QRDeviceWidget } from '@/components/auth/QRDeviceWidget'
 
 export default function ProfilePage() {
   const user = useAppStore(s => s.user)
@@ -77,6 +78,20 @@ export default function ProfilePage() {
            initial={{ opacity: 0, y: 20 }}
            animate={{ opacity: 1, y: 0 }}
            transition={{ duration: 0.5, ease: 'easeOut', delay: 0.2 }}
+           className="rounded-3xl p-6 md:p-8 mb-6"
+           style={{ background: 'var(--ds-surface-low)', border: '1px solid rgba(145,180,228,0.15)' }}
+        >
+           <h2 className="text-lg font-bold mb-2" style={{ color: 'var(--ds-on-surface)' }}>Iniciar sesión en otro dispositivo</h2>
+           <p className="text-sm mb-5" style={{ color: 'var(--ds-on-variant)' }}>
+             Generá un QR y escanealo con tu teléfono o tablet para entrar allí sin contraseña.
+           </p>
+           <QRDeviceWidget />
+        </motion.div>
+
+        <motion.div
+           initial={{ opacity: 0, y: 20 }}
+           animate={{ opacity: 1, y: 0 }}
+           transition={{ duration: 0.5, ease: 'easeOut', delay: 0.3 }}
            className="rounded-3xl p-6 md:p-8"
            style={{ background: 'var(--ds-surface-low)', border: '1px solid rgba(145,180,228,0.15)' }}
         >
@@ -84,18 +99,15 @@ export default function ProfilePage() {
            <p className="text-sm mb-6" style={{ color: 'var(--ds-on-variant)' }}>
              Si estás utilizando un dispositivo público, te recomendamos cerrar sesión al terminar.
            </p>
-
-           <div className="flex flex-col sm:flex-row gap-4">
-             <motion.button
-               whileHover={{ scale: 1.02 }}
-               whileTap={{ scale: 0.98 }}
-               onClick={handleLogout}
-               className="rounded-xl px-6 py-2.5 text-sm font-semibold transition"
-               style={{ background: 'rgba(239,68,68,0.12)', color: '#ef4444' }}
-             >
-               Cerrar sesión
-             </motion.button>
-           </div>
+           <motion.button
+             whileHover={{ scale: 1.02 }}
+             whileTap={{ scale: 0.98 }}
+             onClick={handleLogout}
+             className="rounded-xl px-6 py-2.5 text-sm font-semibold transition"
+             style={{ background: 'rgba(239,68,68,0.12)', color: '#ef4444' }}
+           >
+             Cerrar sesión
+           </motion.button>
         </motion.div>
       </div>
     </div>

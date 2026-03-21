@@ -104,6 +104,22 @@ CREATE POLICY "notes_delete" ON public.notes
   FOR DELETE USING (auth.uid() = user_id);
 
 -- ──────────────────────────────────────────────────────────
+-- QR SESSIONS (WhatsApp Web style QR login)
+-- ──────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS public.qr_sessions (
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  email       TEXT,
+  desktop_otp TEXT,
+  confirmed   BOOLEAN NOT NULL DEFAULT false,
+  expires_at  TIMESTAMPTZ NOT NULL DEFAULT (now() + interval '5 minutes'),
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- Accessed only via service_role (admin client) — no RLS needed by users
+-- Auto-cleanup: delete expired sessions
+CREATE INDEX IF NOT EXISTS idx_qr_sessions_expires ON public.qr_sessions(expires_at);
+
+-- ──────────────────────────────────────────────────────────
 -- STORAGE bucket: note-images
 -- Run this block in Supabase SQL Editor (separate from the tables above)
 -- ──────────────────────────────────────────────────────────

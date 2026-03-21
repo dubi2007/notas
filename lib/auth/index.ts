@@ -25,7 +25,7 @@ export async function login(email: string, password: string) {
 }
 
 /** Send a one-time code + magic link to the user's email via Brevo API */
-export async function sendOTP(email: string): Promise<{ emailOtp: string | null }> {
+export async function sendOTP(email: string): Promise<void> {
   const res = await fetch('/api/auth/send-otp', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -33,7 +33,6 @@ export async function sendOTP(email: string): Promise<{ emailOtp: string | null 
   })
   const json = await res.json()
   if (!res.ok) throw { message: json.error ?? 'No se pudo enviar el código' } as AuthError
-  return { emailOtp: json.emailOtp ?? null }
 }
 
 /**
