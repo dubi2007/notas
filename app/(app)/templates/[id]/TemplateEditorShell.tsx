@@ -18,7 +18,7 @@ const TemplateEditor = dynamic(
 export function TemplateEditorShell({ template }: { template: Template }) {
   return (
     <div className="h-full overflow-hidden">
-      <TemplateEditor template={template} />
+      <TemplateEditor key={template.id} template={template} />
     </div>
   )
 }

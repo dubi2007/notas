@@ -19,7 +19,7 @@ import { uploadImage }     from '@/services/storage'
 import { useAppStore }     from '@/store/useAppStore'
 import type { Json, Template } from '@/types'
 import { PAGE_FORMATS, PAGE_HEIGHT_PX, PAGE_GAP_PX, type FormatKey } from '../TipTapEditor/pageFormats'
-import { getStoredFormat } from '../TipTapEditor/pageStorage'
+import { getStoredFormat, loadHF } from '../TipTapEditor/pageStorage'
 import { PageCard }    from '../TipTapEditor/PageCard'
 import { HFEditPanel } from '../TipTapEditor/HFEditPanel'
 
@@ -38,8 +38,8 @@ export function TemplateEditor({ template }: { template: Template }) {
   // Reuse same localStorage key pattern as notes
   const [format,      setFormat]      = useState<FormatKey>(() => getStoredFormat(`tpl:${template.id}`))
   const [pageCount,   setPageCount]   = useState(1)
-  const [headerText,  setHeaderText]  = useState('')
-  const [footerText,  setFooterText]  = useState('')
+  const [headerText,  setHeaderText]  = useState(() => loadHF(`tpl:${template.id}`).header)
+  const [footerText,  setFooterText]  = useState(() => loadHF(`tpl:${template.id}`).footer)
   const [editingZone, setEditingZone] = useState<'header' | 'footer' | null>(null)
 
   const editor = useEditor({
@@ -60,6 +60,14 @@ export function TemplateEditor({ template }: { template: Template }) {
       triggerSave({ templateId: template.id, name: titleRef.current?.value ?? template.name, content: editor.getJSON() as Json })
     },
   })
+
+  useEffect(() => {
+    if (!editor) return
+    const incoming = template.content as object
+    if (JSON.stringify(incoming) !== JSON.stringify(editor.getJSON())) {
+      editor.commands.setContent(incoming)
+    }
+  }, [editor, template.content, template.id])
 
   // Page count via ResizeObserver
   useEffect(() => {

@@ -1,12 +1,15 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useSyncExternalStore } from 'react'
 
 type Theme = 'light' | 'dark'
+const STORAGE_KEY = 'theme'
+const THEME_CHANGE_EVENT = 'theme-change'
 
-function getInitialTheme(): Theme {
+function getPreferredTheme(): Theme {
   if (typeof window === 'undefined') return 'light'
-  const saved = localStorage.getItem('theme') as Theme | null
+
+  const saved = localStorage.getItem(STORAGE_KEY) as Theme | null
   if (saved) return saved
   return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
 }
@@ -15,39 +18,56 @@ function applyTheme(t: Theme) {
   document.documentElement.setAttribute('data-theme', t)
 }
 
+function subscribe(onStoreChange: () => void) {
+  if (typeof window === 'undefined') return () => {}
+
+  const mq = window.matchMedia('(prefers-color-scheme: dark)')
+  const onSystemChange = () => {
+    if (!localStorage.getItem(STORAGE_KEY)) {
+      onStoreChange()
+    }
+  }
+  const onStorageChange = (event: StorageEvent) => {
+    if (event.key === STORAGE_KEY) {
+      onStoreChange()
+    }
+  }
+  const onThemeChange = () => onStoreChange()
+
+  mq.addEventListener('change', onSystemChange)
+  window.addEventListener('storage', onStorageChange)
+  window.addEventListener(THEME_CHANGE_EVENT, onThemeChange)
+
+  return () => {
+    mq.removeEventListener('change', onSystemChange)
+    window.removeEventListener('storage', onStorageChange)
+    window.removeEventListener(THEME_CHANGE_EVENT, onThemeChange)
+  }
+}
+
+function notifyThemeChange() {
+  window.dispatchEvent(new Event(THEME_CHANGE_EVENT))
+}
+
 export function useTheme() {
-  const [theme, setTheme] = useState<Theme>('light')
+  const theme = useSyncExternalStore<Theme>(subscribe, getPreferredTheme, () => 'light')
 
   useEffect(() => {
-    const initial = getInitialTheme()
-    setTheme(initial)
-    applyTheme(initial)
-
-    // Follow system changes if user hasn't saved a preference
-    const mq = window.matchMedia('(prefers-color-scheme: dark)')
-    const onSystemChange = (e: MediaQueryListEvent) => {
-      if (!localStorage.getItem('theme')) {
-        const next: Theme = e.matches ? 'dark' : 'light'
-        setTheme(next)
-        applyTheme(next)
-      }
-    }
-    mq.addEventListener('change', onSystemChange)
-    return () => mq.removeEventListener('change', onSystemChange)
-  }, [])
+    applyTheme(theme)
+  }, [theme])
 
   const toggle = () => {
     const next: Theme = theme === 'light' ? 'dark' : 'light'
-    setTheme(next)
-    localStorage.setItem('theme', next)
+    localStorage.setItem(STORAGE_KEY, next)
     applyTheme(next)
+    notifyThemeChange()
   }
 
   const reset = () => {
-    localStorage.removeItem('theme')
+    localStorage.removeItem(STORAGE_KEY)
     const sys: Theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
-    setTheme(sys)
     applyTheme(sys)
+    notifyThemeChange()
   }
 
   return { theme, toggle, reset }

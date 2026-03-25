@@ -25,22 +25,36 @@ export function useAutoSave() {
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const lastSavedRef = useRef<string>('')
   const isSavingRef = useRef(false)
+  const pendingPayloadRef = useRef<AutoSavePayload | null>(null)
 
   const save = useCallback(
     async ({ noteId, title, content }: AutoSavePayload) => {
-      if (isSavingRef.current) return
+      const payload = { noteId, title, content }
+      if (isSavingRef.current) {
+        pendingPayloadRef.current = payload
+        return
+      }
       isSavingRef.current = true
       setSaveStatus('saving')
 
       try {
         await updateNote(noteId, { title, content })
         updateNoteStore(noteId, { title, content })
+        lastSavedRef.current = JSON.stringify(payload)
         setSaveStatus('saved')
         setTimeout(() => setSaveStatus('idle'), 2000)
       } catch {
         setSaveStatus('error')
       } finally {
         isSavingRef.current = false
+        const pendingPayload = pendingPayloadRef.current
+        pendingPayloadRef.current = null
+        if (pendingPayload) {
+          const pendingSerialised = JSON.stringify(pendingPayload)
+          if (pendingSerialised !== lastSavedRef.current) {
+            void save(pendingPayload)
+          }
+        }
       }
     },
     [setSaveStatus, updateNoteStore],
@@ -53,8 +67,7 @@ export function useAutoSave() {
 
       if (timerRef.current) clearTimeout(timerRef.current)
       timerRef.current = setTimeout(() => {
-        lastSavedRef.current = serialised
-        save(payload)
+        void save(payload)
       }, DEBOUNCE_MS)
     },
     [save],

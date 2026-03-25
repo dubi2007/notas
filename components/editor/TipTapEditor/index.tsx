@@ -86,13 +86,10 @@ export function TipTapEditor({ note }: Props) {
   useEffect(() => {
     if (!editor) return
     const incoming = note.content as object
-    if (JSON.stringify(incoming) !== JSON.stringify(editor.getJSON()))
+    if (JSON.stringify(incoming) !== JSON.stringify(editor.getJSON())) {
       editor.commands.setContent(incoming)
-    const fmt = getStoredFormat(note.id)
-    const hf  = loadHF(note.id)
-    setFormat(fmt); setHeaderText(hf.header); setFooterText(hf.footer)
-    setPageCount(1); setEditingZone(null)
-  }, [note.id, editor]) // eslint-disable-line react-hooks/exhaustive-deps
+    }
+  }, [editor, note.content, note.id])
 
   // ── Page count via ResizeObserver ──────────────────────────────────────────
   useEffect(() => {

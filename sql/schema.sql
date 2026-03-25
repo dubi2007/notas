@@ -120,6 +120,18 @@ CREATE TABLE IF NOT EXISTS public.qr_sessions (
 CREATE INDEX IF NOT EXISTS idx_qr_sessions_expires ON public.qr_sessions(expires_at);
 
 -- ──────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS public.otp_codes (
+  id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  email      TEXT NOT NULL,
+  code       TEXT NOT NULL,
+  expires_at TIMESTAMPTZ NOT NULL,
+  used       BOOLEAN NOT NULL DEFAULT false,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_otp_codes_email      ON public.otp_codes(email);
+CREATE INDEX IF NOT EXISTS idx_otp_codes_expires_at ON public.otp_codes(expires_at);
+
 -- STORAGE bucket: note-images
 -- Run this block in Supabase SQL Editor (separate from the tables above)
 -- ──────────────────────────────────────────────────────────

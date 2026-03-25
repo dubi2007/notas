@@ -19,7 +19,7 @@ const TipTapEditor = dynamic(
 export function NoteEditorShell({ note }: { note: Note }) {
   return (
     <div className="h-full overflow-hidden">
-      <TipTapEditor note={note} />
+      <TipTapEditor key={note.id} note={note} />
     </div>
   )
 }

@@ -10,10 +10,16 @@ export function useTemplates() {
   const [templates, setTemplates] = useState<Template[]>([])
 
   useEffect(() => {
-    if (!user) { setTemplates([]); return }
-    fetchTemplates().then(setTemplates).catch(() => {
+    if (!user) return
+    let isActive = true
+    fetchTemplates().then((data) => {
+      if (isActive) setTemplates(data)
+    }).catch(() => {
       // tabla templates no existe aún — ignorar silenciosamente
     })
+    return () => {
+      isActive = false
+    }
   }, [user])
 
   const handleCreate = useCallback(async (name: string, content: Json = {}) => {
@@ -38,5 +44,5 @@ export function useTemplates() {
     } catch { /* noop */ }
   }, [])
 
-  return { templates, handleCreate, handleUpdate, handleDelete }
+  return { templates: user ? templates : [], handleCreate, handleUpdate, handleDelete }
 }

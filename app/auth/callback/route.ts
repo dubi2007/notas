@@ -9,7 +9,7 @@ import { getSupabaseServerClient } from '@/lib/supabase/server'
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = request.nextUrl
   const token_hash = searchParams.get('token_hash')
-  const type       = searchParams.get('type') as 'email' | 'magiclink' | 'recovery' | null
+  const type       = searchParams.get('type') as 'email' | 'magiclink' | 'recovery' | 'signup' | null
   const next       = searchParams.get('next') ?? '/app'
 
   if (token_hash && type) {

@@ -29,9 +29,17 @@ const slideVariant: Variants = {
   exit:   { opacity: 0, x: -16, transition: { duration: 0.12 } },
 }
 
+function getSafeRedirectTarget(next: string | null): string {
+  return next && next.startsWith('/') && !next.startsWith('//') ? next : '/'
+}
+
 export function LoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const redirectTarget = getSafeRedirectTarget(searchParams.get('next'))
+  const registerHref = redirectTarget === '/'
+    ? '/register'
+    : `/register?next=${encodeURIComponent(redirectTarget)}`
 
   const [mode, setMode]         = useState<Mode>('password')
   const [email, setEmail]       = useState('')
@@ -61,9 +69,9 @@ export function LoginForm() {
   useEffect(() => {
     void (async () => {
       const { data } = await getSupabaseBrowserClient().auth.getSession()
-      if (data.session) router.replace('/')
+      if (data.session) router.replace(redirectTarget)
     })()
-  }, [router])
+  }, [redirectTarget, router])
 
   function switchMode(m: Mode) {
     setMode(m); setError(''); setSent(false); setOtpStep('email'); setCode('')
@@ -74,7 +82,7 @@ export function LoginForm() {
     e.preventDefault(); setError(''); setLoading(true)
     try {
       await login(email, password)
-      router.push('/'); router.refresh()
+      window.location.assign(redirectTarget)
     } catch (err: unknown) {
       setError((err as { message: string }).message ?? 'Error al iniciar sesión')
     } finally { setLoading(false) }
@@ -98,7 +106,7 @@ export function LoginForm() {
         email: otpEmail, token: emailOtp, type: 'magiclink',
       })
       if (verifyError) throw { message: verifyError.message }
-      window.location.href = '/'
+      window.location.assign(redirectTarget)
     } catch (err: unknown) {
       setError((err as { message: string }).message ?? 'Código incorrecto o expirado')
       setLoading(false)
@@ -153,7 +161,7 @@ export function LoginForm() {
             type: 'magiclink',
           })
           if (!verifyError) {
-            window.location.href = '/'
+            window.location.assign(redirectTarget)
           }
         }
       } catch {
@@ -162,7 +170,7 @@ export function LoginForm() {
     }, 2000)
 
     return () => clearInterval(interval)
-  }, [qrPolling, qrSessionId])
+  }, [qrPolling, qrSessionId, redirectTarget])
 
   const qrUrl = qrSessionId && qrOrigin
     ? `${qrOrigin}/auth/qr?session=${encodeURIComponent(qrSessionId)}`
@@ -342,7 +350,7 @@ export function LoginForm() {
 
         <p className="mt-6 text-center text-sm" style={{ color: 'var(--ds-on-variant)' }}>
           ¿No tienes cuenta?{' '}
-          <Link href="/register" className="font-semibold hover:opacity-80 transition"
+          <Link href={registerHref} className="font-semibold hover:opacity-80 transition"
             style={{ color: 'var(--ds-primary)' }}
           >
             Registrarse

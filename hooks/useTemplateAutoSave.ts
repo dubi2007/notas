@@ -15,19 +15,33 @@ export function useTemplateAutoSave() {
   const timerRef     = useRef<ReturnType<typeof setTimeout> | null>(null)
   const lastSavedRef = useRef<string>('')
   const isSavingRef  = useRef(false)
+  const pendingPayloadRef = useRef<Payload | null>(null)
 
   const save = useCallback(async ({ templateId, name, content }: Payload) => {
-    if (isSavingRef.current) return
+    const payload = { templateId, name, content }
+    if (isSavingRef.current) {
+      pendingPayloadRef.current = payload
+      return
+    }
     isSavingRef.current = true
     setSaveStatus('saving')
     try {
       await updateTemplate(templateId, { name, content })
+      lastSavedRef.current = JSON.stringify(payload)
       setSaveStatus('saved')
       setTimeout(() => setSaveStatus('idle'), 2000)
     } catch {
       setSaveStatus('error')
     } finally {
       isSavingRef.current = false
+      const pendingPayload = pendingPayloadRef.current
+      pendingPayloadRef.current = null
+      if (pendingPayload) {
+        const pendingSerialised = JSON.stringify(pendingPayload)
+        if (pendingSerialised !== lastSavedRef.current) {
+          void save(pendingPayload)
+        }
+      }
     }
   }, [setSaveStatus])
 
@@ -36,8 +50,7 @@ export function useTemplateAutoSave() {
     if (serialised === lastSavedRef.current) return
     if (timerRef.current) clearTimeout(timerRef.current)
     timerRef.current = setTimeout(() => {
-      lastSavedRef.current = serialised
-      save(payload)
+      void save(payload)
     }, DEBOUNCE_MS)
   }, [save])
 
